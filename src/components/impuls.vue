@@ -33,7 +33,12 @@
 
     <div class="row">
       <div class="col-3">
-        <input class="settings-inp" type="number" v-model="sot_period_avg" />
+        <input
+          class="settings-inp"
+          type="number"
+          min="0"
+          v-model="sot_period_avg"
+        />
       </div>
       <div class="col-9">
         <p>average time period (sec)</p>
@@ -42,7 +47,12 @@
 
     <div class="row">
       <div class="col-3">
-        <input class="settings-inp" type="number" v-model="sot_threshold" />
+        <input
+          class="settings-inp"
+          type="number"
+          min="0"
+          v-model="alert_coef"
+        />
       </div>
       <div class="col-9">
         <p>alert coefficient</p>
@@ -51,10 +61,43 @@
 
     <div class="row">
       <div class="col-3">
-        <input class="settings-inp" type="number" v-model="sot_min_threshold" />
+        <input
+          class="settings-inp"
+          type="number"
+          min="0"
+          v-model="sot_min_threshold"
+        />
       </div>
       <div class="col-9">
-        <p>min threshold (ticks/sec)</p>
+        <p>threshold (ticks/sec)</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-3">
+        <input
+          class="settings-inp"
+          type="number"
+          min="0"
+          v-model="sot_avg_threshold"
+        />
+      </div>
+      <div class="col-9">
+        <p>avg threshold (ticks/sec)</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-3">
+        <input
+          class="settings-inp"
+          type="checkbox"
+          min="0"
+          v-model="show_avg_alert"
+        />
+      </div>
+      <div class="col-9">
+        <p>show avg alert</p>
       </div>
     </div>
 
@@ -161,6 +204,7 @@
   border-radius: 5px;
   margin-right: 12px;
   outline: none;
+  z-index: 100;
 }
 </style>
 
@@ -189,9 +233,13 @@ export default {
       ticker: 'BTC',
       sot_period_avg: 30,
       sot_min_threshold: 50,
-      sot_threshold: 3,
+      sot_avg_threshold: 20,
+      alert_coef: 3,
+
+      show_avg_alert: true,
 
       sounds: [
+        'https://www.pacdv.com/sounds/miscellaneous_sounds/bottle_pop_2.wav',
         'https://www.pacdv.com/sounds/interface_sound_effects/beep-3.wav',
         'https://www.pacdv.com/sounds/interface_sound_effects/sound19.mp3',
         'https://www.pacdv.com/sounds/interface_sound_effects/sound27.mp3',
@@ -200,7 +248,6 @@ export default {
         'https://www.pacdv.com/sounds/interface_sound_effects/sound77.wav',
         'https://www.pacdv.com/sounds/interface_sound_effects/sound95.wav',
         'https://www.pacdv.com/sounds/miscellaneous_sounds/bottle_pop_1.wav',
-        'https://www.pacdv.com/sounds/miscellaneous_sounds/bottle_pop_2.wav',
       ],
     }
   },
@@ -221,9 +268,12 @@ export default {
       localStorage.getItem('sot_min_threshold') != null
         ? (this.sot_min_threshold = localStorage.getItem('sot_min_threshold'))
         : (this.sot_min_threshold = 50)
-      localStorage.getItem('sot_threshold') != null
-        ? (this.sot_threshold = localStorage.getItem('sot_threshold'))
-        : (this.sot_threshold = 3)
+      localStorage.getItem('sot_avg_threshold') != null
+        ? (this.sot_avg_threshold = localStorage.getItem('sot_avg_threshold'))
+        : (this.sot_avg_threshold = 20)
+      localStorage.getItem('alert_coef') != null
+        ? (this.alert_coef = localStorage.getItem('alert_coef'))
+        : (this.alert_coef = 3)
     })
   },
   methods: {
@@ -260,7 +310,8 @@ export default {
       localStorage.setItem('sound', this.sound)
       localStorage.setItem('sot_period_avg', this.sot_period_avg)
       localStorage.setItem('sot_min_threshold', this.sot_min_threshold)
-      localStorage.setItem('sot_threshold', this.sot_threshold)
+      localStorage.setItem('sot_avg_threshold', this.sot_avg_threshold)
+      localStorage.setItem('alert_coef', this.alert_coef)
 
       // Change button text
       if (this.button_text === 'Save & Start') {
@@ -335,9 +386,10 @@ export default {
 
         // Alert condition
         if (
-          this.counter >= this.speedAvg * this.sot_threshold &&
+          this.counter >= this.speedAvg * this.alert_coef &&
           counter_arr.length / 2 >= this.sot_period_avg &&
-          this.counter >= this.sot_min_threshold
+          this.counter >= this.sot_min_threshold &&
+          this.speedAvg >= this.sot_avg_threshold
         ) {
           const audio = new Audio(this.sounds[this.sound])
           audio.play()
@@ -345,6 +397,15 @@ export default {
           const rightArea = document.querySelector('.area-right')
           rightArea.style.backgroundColor = '#d28e28'
           setTimeout(() => (rightArea.style.backgroundColor = '#333333'), 5000)
+        }
+
+        // Highlight right area when avg speed greater than threshold
+        if (this.show_avg_alert && this.speedAvg >= this.sot_avg_threshold) {
+          const leftArea = document.querySelector('.area-left')
+          leftArea.style.borderRight = '10px solid #d28e28'
+        } else {
+          const leftArea = document.querySelector('.area-left')
+          leftArea.style.borderRight = '1px solid rgba(255, 255, 255, 0.25)'
         }
       }, 500)
     },
@@ -394,9 +455,10 @@ export default {
 
         // Alert condition
         if (
-          this.counter >= this.speedAvg * this.sot_threshold &&
+          this.counter >= this.speedAvg * this.alert_coef &&
           counter_arr.length / 2 >= this.sot_period_avg &&
-          this.counter >= this.sot_min_threshold
+          this.counter >= this.sot_min_threshold &&
+          this.speedAvg >= this.sot_avg_threshold
         ) {
           const audio = new Audio(this.sounds[this.sound])
           audio.play()
@@ -404,6 +466,15 @@ export default {
           const rightArea = document.querySelector('.area-right')
           rightArea.style.backgroundColor = '#d28e28'
           setTimeout(() => (rightArea.style.backgroundColor = '#333333'), 5000)
+        }
+
+        // Highlight right area when avg speed greater than threshold
+        if (this.show_avg_alert && this.speedAvg >= this.sot_avg_threshold) {
+          const leftArea = document.querySelector('.area-left')
+          leftArea.style.borderRight = '10px solid #d28e28'
+        } else {
+          const leftArea = document.querySelector('.area-left')
+          leftArea.style.borderRight = '1px solid rgba(255, 255, 255, 0.25)'
         }
       }, 500)
     },
