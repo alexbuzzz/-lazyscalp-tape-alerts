@@ -1,7 +1,5 @@
-# Vue 3 + Vite
+# LazyScalp Tape Alerts
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Desktop app for quick crypto traders (scalpers). App uses with terminals CScalp, EasyScalp, or TigerTrade.
 
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
+The app shows the current tape speed, and average tape speed and sends alerts when some conditions happen.
